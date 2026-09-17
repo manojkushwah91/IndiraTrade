@@ -33,6 +33,18 @@ java -jar target/operations-console-1.0.0-SNAPSHOT.jar
 
 The app starts on `http://localhost:8080`
 
+## Screenshots
+
+| View | Image |
+|------|-------|
+| Investigator (full access + evidence) | `screenshots/01-investigator.png` |
+| Support (masked client IDs) | `screenshots/02-support.png` |
+| Ops Lead (can resolve cases) | `screenshots/03-opslead.png` |
+| Auditor (read-only, all clients) | `screenshots/04-auditor.png` |
+| Dashboard | `screenshots/05-dashboard.png` |
+
+For the live demo, open `http://localhost:8080?user=USR001&case=1` to show a specific role and case.
+
 ## API Endpoints
 
 | Method | Endpoint | Description | Role Required |
