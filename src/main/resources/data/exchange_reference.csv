@@ -1,0 +1,11 @@
+symbol,isin,series,exchange,company_name,face_value,last_traded_price
+RELIANCE,INE002A01018,EQ,NSE,Reliance Industries Limited,10,2450.75
+RELIANCE,INE002A01018,EQ,BSE,Reliance Industries Limited,10,2451.00
+HDFCBANK,INE049A01021,EQ,NSE,HDFC Bank Limited,10,1675.50
+HDFCBANK,INE049A01021,EQ,BSE,HDFC Bank Limited,10,1676.25
+TCS,INE009A01021,EQ,NSE,Tata Consultancy Services Limited,10,3890.00
+TCS,INE009A01021,EQ,BSE,Tata Consultancy Services Limited,10,3891.50
+INFY,INE031A01021,EQ,NSE,Infosys Limited,10,1456.25
+INFY,INE031A01021,EQ,BSE,Infosys Limited,10,1457.00
+WIPRO,INE012A01021,EQ,NSE,Wipro Limited,5,425.75
+WIPRO,INE012A01021,EQ,BSE,Wipro Limited,5,426.00

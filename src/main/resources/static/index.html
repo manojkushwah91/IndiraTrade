@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndiraTrade Operations Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #09090b; color: #fafafa; overflow: hidden; height: 100vh; }
+
+        /* HEADER */
+        .header {
+            background: #18181b; border-bottom: 1px solid #27272a;
+            padding: 0 24px; height: 56px; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo {
+            width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px; color: white;
+        }
+        .header h1 { font-size: 15px; font-weight: 600; color: #fafafa; letter-spacing: -0.02em; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-select {
+            background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46;
+            padding: 6px 12px; border-radius: 6px; font-size: 13px; font-family: inherit;
+            cursor: pointer; appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px;
+        }
+        .user-select:hover { border-color: #52525b; }
+        .role-pill {
+            padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+            letter-spacing: 0.04em; text-transform: uppercase;
+        }
+        .role-INVESTIGATOR { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+        .role-SUPPORT { background: #422006; color: #fbbf24; border: 1px solid #92400e; }
+        .role-OPS_LEAD { background: #2e1065; color: #c084fc; border: 1px solid #581c87; }
+        .role-AUDITOR { background: #450a0a; color: #f87171; border: 1px solid #991b1b; }
+
+        /* METRICS BAR */
+        .metrics-bar {
+            display: flex; gap: 1px; background: #27272a; border-bottom: 1px solid #27272a;
+        }
+        .metric-card {
+            flex: 1; background: #18181b; padding: 14px 20px; position: relative;
+        }
+        .metric-card:hover { background: #1c1c1f; }
+        .metric-card .label { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+        .metric-card .value {
+            font-size: 24px; font-weight: 700; margin-top: 2px; letter-spacing: -0.02em;
+        }
+        .metric-card .bar {
+            position: absolute; bottom: 0; left: 0; height: 2px;
+        }
+
+        /* STATE SUMMARY */
+        .state-summary {
+            display: flex; gap: 0; background: #09090b; border-bottom: 1px solid #27272a;
+            padding: 0 24px;
+        }
+        .state-item {
+            padding: 10px 16px; font-size: 12px; color: #71717a; cursor: pointer;
+            border-bottom: 2px solid transparent; transition: all 0.15s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .state-item:hover { color: #d4d4d8; }
+        .state-item.active { color: #fafafa; border-bottom-color: #3b82f6; }
+        .state-item .count {
+            background: #27272a; padding: 1px 6px; border-radius: 4px;
+            font-size: 11px; font-weight: 600; color: #a1a1aa;
+        }
+        .state-item.active .count { background: #1e3a5f; color: #60a5fa; }
+
+        /* MAIN LAYOUT */
+        .main { display: flex; height: calc(100vh - 56px - 52px - 40px); }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 380px; background: #18181b; border-right: 1px solid #27272a;
+            display: flex; flex-direction: column;
+        }
+        .search-bar {
+            padding: 12px 16px; border-bottom: 1px solid #27272a;
+            display: flex; gap: 8px;
+        }
+        .search-input {
+            flex: 1; background: #27272a; color: #fafafa; border: 1px solid #3f3f46;
+            padding: 7px 12px; border-radius: 6px; font-size: 13px; font-family: inherit;
+        }
+        .search-input::placeholder { color: #52525b; }
+        .search-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+        .filter-btn {
+            background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46;
+            padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .filter-btn:hover { background: #3f3f46; }
+
+        .case-list { flex: 1; overflow-y: auto; }
+        .case-list::-webkit-scrollbar { width: 6px; }
+        .case-list::-webkit-scrollbar-track { background: transparent; }
+        .case-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+
+        .case-item {
+            padding: 12px 16px; border-bottom: 1px solid #1c1c1f; cursor: pointer;
+            transition: all 0.12s; display: flex; gap: 12px;
+        }
+        .case-item:hover { background: #1c1c1f; }
+        .case-item.active { background: #0f2a4a; border-left: 3px solid #3b82f6; }
+
+        .case-indicator {
+            width: 3px; border-radius: 2px; flex-shrink: 0; margin-top: 2px;
+            align-self: stretch;
+        }
+        .case-indicator.CRITICAL { background: #ef4444; }
+        .case-indicator.HIGH { background: #f97316; }
+        .case-indicator.MEDIUM { background: #eab308; }
+        .case-indicator.LOW { background: #22c55e; }
+
+        .case-content { flex: 1; min-width: 0; }
+        .case-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .case-id { font-weight: 600; font-size: 13px; color: #fafafa; }
+        .case-severity {
+            font-size: 10px; font-weight: 600; padding: 2px 6px;
+            border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .sev-CRITICAL { background: #7f1d1d; color: #fca5a5; }
+        .sev-HIGH { background: #7c2d12; color: #fdba74; }
+        .sev-MEDIUM { background: #713f12; color: #fde047; }
+        .sev-LOW { background: #14532d; color: #86efac; }
+
+        .case-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+        .case-type-tag {
+            font-size: 11px; padding: 2px 6px; border-radius: 4px;
+            background: #27272a; color: #a1a1aa; font-weight: 500;
+        }
+        .case-client { font-size: 12px; color: #71717a; }
+        .case-desc { font-size: 12px; color: #71717a; line-height: 1.4; overflow: hidden;
+                     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .case-time { font-size: 11px; color: #52525b; margin-top: 4px; }
+
+        /* PAGINATION */
+        .pagination {
+            padding: 10px 16px; border-top: 1px solid #27272a;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #18181b;
+        }
+        .pagination button {
+            background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;
+        }
+        .pagination button:hover:not(:disabled) { background: #3f3f46; }
+        .pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .pagination .page-info { font-size: 11px; color: #71717a; }
+
+        /* DETAIL PANEL */
+        .detail-panel { flex: 1; background: #09090b; overflow-y: auto; padding: 0; }
+        .detail-panel::-webkit-scrollbar { width: 6px; }
+        .detail-panel::-webkit-scrollbar-track { background: transparent; }
+        .detail-panel::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+
+        .detail-header {
+            padding: 20px 24px; border-bottom: 1px solid #27272a;
+            background: #18181b; display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .detail-header h2 { font-size: 16px; font-weight: 600; color: #fafafa; }
+        .detail-header .case-id-big {
+            font-size: 12px; color: #71717a; font-weight: 400;
+        }
+        .detail-header-actions { display: flex; gap: 6px; }
+
+        .detail-body { padding: 20px 24px; }
+        .detail-section {
+            background: #18181b; border: 1px solid #27272a; border-radius: 8px;
+            margin-bottom: 16px; overflow: hidden;
+        }
+        .section-header {
+            padding: 12px 16px; border-bottom: 1px solid #27272a;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .section-header h3 {
+            font-size: 12px; color: #a1a1aa; text-transform: uppercase;
+            letter-spacing: 0.06em; font-weight: 600;
+        }
+        .section-body { padding: 16px; }
+
+        .detail-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        .detail-field { }
+        .detail-field .field-label {
+            font-size: 11px; color: #52525b; text-transform: uppercase;
+            letter-spacing: 0.04em; margin-bottom: 4px; font-weight: 500;
+        }
+        .detail-field .field-value { font-size: 13px; color: #d4d4d8; word-break: break-all; }
+        .detail-field .field-value.mono { font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 12px; }
+
+        .evidence-card {
+            background: #09090b; border: 1px solid #27272a; border-radius: 6px;
+            padding: 10px 12px; margin-bottom: 8px;
+        }
+        .evidence-card:last-child { margin-bottom: 0; }
+        .evidence-source {
+            font-size: 11px; font-weight: 600; color: #3b82f6;
+            text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;
+        }
+        .evidence-data { font-size: 13px; color: #d4d4d8; line-height: 1.5; font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 12px; }
+
+        /* NOTES */
+        .note-item {
+            padding: 12px; background: #09090b; border: 1px solid #27272a;
+            border-radius: 6px; margin-bottom: 8px;
+        }
+        .note-meta {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+        }
+        .note-user { font-size: 12px; font-weight: 600; color: #d4d4d8; }
+        .note-time { font-size: 11px; color: #52525b; }
+        .note-text { font-size: 13px; color: #a1a1aa; line-height: 1.5; }
+        .note-transition {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; padding: 2px 8px; border-radius: 4px;
+            background: #1e3a5f; color: #60a5fa; margin-top: 6px;
+        }
+
+        /* ADD NOTE */
+        .add-note { margin-top: 12px; }
+        .add-note textarea {
+            width: 100%; background: #09090b; color: #fafafa; border: 1px solid #27272a;
+            padding: 10px 12px; border-radius: 6px; resize: vertical; min-height: 72px;
+            font-family: inherit; font-size: 13px;
+        }
+        .add-note textarea::placeholder { color: #52525b; }
+        .add-note textarea:focus { outline: none; border-color: #3b82f6; }
+        .add-note-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+            cursor: pointer; border: none; transition: all 0.15s; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-success:hover { background: #15803d; }
+        .btn-warning { background: #d97706; color: white; }
+        .btn-warning:hover { background: #b45309; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-ghost { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; }
+        .btn-ghost:hover { background: #27272a; color: #fafafa; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* EMPTY STATE */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; color: #52525b; text-align: center; padding: 40px;
+        }
+        .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+        .empty-state h3 { font-size: 14px; color: #71717a; margin-bottom: 4px; }
+        .empty-state p { font-size: 12px; color: #52525b; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center; z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+        .modal {
+            background: #18181b; border: 1px solid #27272a; border-radius: 12px;
+            width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            padding: 16px 20px; border-bottom: 1px solid #27272a;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h3 { font-size: 14px; font-weight: 600; color: #fafafa; }
+        .modal-close {
+            background: none; border: none; color: #71717a; cursor: pointer;
+            font-size: 18px; padding: 4px; line-height: 1;
+        }
+        .modal-close:hover { color: #fafafa; }
+        .modal-body { padding: 20px; }
+        .modal-body textarea {
+            width: 100%; background: #09090b; color: #fafafa; border: 1px solid #3f3f46;
+            padding: 10px 12px; border-radius: 6px; resize: vertical; min-height: 80px;
+            font-family: inherit; font-size: 13px;
+        }
+        .modal-body textarea::placeholder { color: #52525b; }
+        .modal-body textarea:focus { outline: none; border-color: #3b82f6; }
+        .modal-footer {
+            padding: 12px 20px; border-top: 1px solid #27272a;
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
+
+        /* TOAST */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            padding: 10px 16px; border-radius: 8px; font-size: 13px;
+            animation: toastIn 0.3s ease; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .toast-success { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+        .toast-error { background: #450a0a; color: #f87171; border: 1px solid #991b1b; }
+        @keyframes toastIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* LOADING */
+        .loading { display: flex; align-items: center; justify-content: center; padding: 40px; gap: 8px; color: #71717a; font-size: 13px; }
+        .spinner {
+            width: 16px; height: 16px; border: 2px solid #3f3f46;
+            border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* KEYBOARD HINTS */
+        .kbd-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #18181b;
+            border-top: 1px solid #27272a; padding: 6px 16px; display: flex; gap: 16px;
+            font-size: 11px; color: #52525b; z-index: 50;
+        }
+        .kbd-bar kbd {
+            background: #27272a; padding: 1px 5px; border-radius: 3px;
+            font-family: 'SF Mono', monospace; color: #71717a; font-size: 10px;
+            border: 1px solid #3f3f46;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">IT</div>
+            <h1>IndiraTrade Operations Console</h1>
+        </div>
+        <div class="header-right">
+            <select class="user-select" id="userSelect">
+                <option value="USR001">Priya Sharma</option>
+                <option value="USR002">Rahul Verma</option>
+                <option value="USR003">Amit Patel</option>
+                <option value="USR004">Neha Gupta</option>
+            </select>
+            <span id="roleBadge" class="role-pill role-INVESTIGATOR">INVESTIGATOR</span>
+        </div>
+    </div>
+
+    <div class="metrics-bar" id="metricsBar">
+        <div class="metric-card">
+            <div class="label">Total Cases</div>
+            <div class="value" id="mTotal" style="color:#fafafa;">-</div>
+            <div class="bar" style="background:#3b82f6;" id="barTotal"></div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Open</div>
+            <div class="value" id="mOpen" style="color:#60a5fa;">-</div>
+            <div class="bar" style="background:#3b82f6;width:0%" id="barOpen"></div>
+        </div>
+        <div class="metric-card">
+            <div class="label">High / Critical</div>
+            <div class="value" id="mHigh" style="color:#f97316;">-</div>
+            <div class="bar" style="background:#f97316;width:0%" id="barHigh"></div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Investigating</div>
+            <div class="value" id="mInv" style="color:#fbbf24;">-</div>
+            <div class="bar" style="background:#eab308;width:0%" id="barInv"></div>
+        </div>
+        <div class="metric-card">
+            <div class="label">Resolved</div>
+            <div class="value" id="mRes" style="color:#4ade80;">-</div>
+            <div class="bar" style="background:#22c55e;width:0%" id="barRes"></div>
+        </div>
+    </div>
+
+    <div class="state-summary" id="stateSummary">
+        <div class="state-item active" data-state="" onclick="filterByState('')">
+            All <span class="count" id="sAll">0</span>
+        </div>
+        <div class="state-item" data-state="OPEN" onclick="filterByState('OPEN')">
+            Open <span class="count" id="sOpen">0</span>
+        </div>
+        <div class="state-item" data-state="INVESTIGATING" onclick="filterByState('INVESTIGATING')">
+            Investigating <span class="count" id="sInv">0</span>
+        </div>
+        <div class="state-item" data-state="NEEDS_SOURCE" onclick="filterByState('NEEDS_SOURCE')">
+            Needs Source <span class="count" id="sNeed">0</span>
+        </div>
+        <div class="state-item" data-state="RESOLVED" onclick="filterByState('RESOLVED')">
+            Resolved <span class="count" id="sRes">0</span>
+        </div>
+        <div class="state-item" data-state="REOPENED" onclick="filterByState('REOPENED')">
+            Reopened <span class="count" id="sReopen">0</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="sidebar">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search cases... (press /)">
+                <select class="user-select" id="filterSeverity" style="width:auto;padding-right:24px;">
+                    <option value="">All Severity</option>
+                    <option value="CRITICAL">Critical</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                </select>
+            </div>
+            <div class="case-list" id="caseList">
+                <div class="loading"><div class="spinner"></div> Loading cases...</div>
+            </div>
+            <div class="pagination">
+                <button id="prevPage" onclick="changePage(-1)" disabled>Prev</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button id="nextPage" onclick="changePage(1)" disabled>Next</button>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detailPanel">
+            <div class="empty-state">
+                <div class="icon">&#9888;</div>
+                <h3>No case selected</h3>
+                <p>Select a case from the list to view details, evidence, and notes.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="kbd-bar">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
+        <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> Page</span>
+        <span><kbd>/</kbd> Search</span>
+        <span><kbd>Esc</kbd> Deselect</span>
+        <span><kbd>Enter</kbd> Open</span>
+    </div>
+
+    <script>
+    const API = '/api';
+    let currentUser = 'USR001', currentPage = 0, totalPages = 0, selectedId = null, activeState = '';
+    const sevColors = { CRITICAL: '#ef4444', HIGH: '#f97316', MEDIUM: '#eab308', LOW: '#22c55e' };
+
+    document.getElementById('userSelect').addEventListener('change', e => {
+        currentUser = e.target.value;
+        selectedId = null;
+        resetDetail();
+        loadMetrics(); loadCases();
+    });
+    document.getElementById('filterSeverity').addEventListener('change', () => { currentPage = 0; loadCases(); });
+    document.getElementById('searchInput').addEventListener('input', debounce(() => { currentPage = 0; loadCases(); }, 300));
+
+    function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+    async function api(path, opts = {}) {
+        const h = { 'X-User-Id': currentUser, ...opts.headers };
+        const r = await fetch(API + path, { ...opts, headers: h });
+        if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || e.error || r.statusText); }
+        return r.json();
+    }
+
+    async function loadMetrics() {
+        try {
+            const d = await api('/cases/metrics');
+            const total = d.totalCases || 1;
+            setText('mTotal', d.totalCases || 0);
+            setText('mOpen', d.openCases || 0);
+            setText('mHigh', (d.criticalSeverity || 0) + (d.highSeverity || 0));
+            setText('mInv', d.investigatingCases || 0);
+            setText('mRes', d.resolvedCases || 0);
+            setBar('barOpen', d.openCases, total);
+            setBar('barHigh', (d.criticalSeverity||0)+(d.highSeverity||0), total);
+            setBar('barInv', d.investigatingCases, total);
+            setBar('barRes', d.resolvedCases, total);
+            setBar('barTotal', d.totalCases, total);
+            setText('sAll', d.totalCases || 0);
+            setText('sOpen', d.openCases || 0);
+            setText('sInv', d.investigatingCases || 0);
+            setText('sNeed', d.needsSourceCases || 0);
+            setText('sRes', d.resolvedCases || 0);
+            setText('sReopen', d.reopenedCases || 0);
+        } catch(e) { console.error(e); }
+    }
+
+    function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+    function setBar(id, val, total) {
+        const el = document.getElementById(id);
+        if (el) el.style.width = total > 0 ? ((val / total) * 100) + '%' : '0%';
+    }
+
+    async function loadCases() {
+        const sev = document.getElementById('filterSeverity').value;
+        const search = document.getElementById('searchInput').value.trim();
+        let url = `/cases?page=${currentPage}&size=20`;
+        if (activeState) url += `&state=${activeState}`;
+        if (sev) url += `&severity=${sev}`;
+        try {
+            const d = await api(url);
+            totalPages = d.totalPages;
+            let cases = d.cases || [];
+            if (search) {
+                const q = search.toLowerCase();
+                cases = cases.filter(c =>
+                    (c.description||'').toLowerCase().includes(q) ||
+                    (c.clientId||'').toLowerCase().includes(q) ||
+                    (c.isin||'').toLowerCase().includes(q) ||
+                    ('#'+c.id).includes(q)
+                );
+            }
+            renderList(cases);
+            updatePag(d);
+            updateRole(d.userRole);
+        } catch (e) {
+            document.getElementById('caseList').innerHTML = `<div class="empty-state"><h3>Error</h3><p>${e.message}</p></div>`;
+        }
+    }
+
+    function renderList(cases) {
+        const el = document.getElementById('caseList');
+        if (!cases.length) {
+            el.innerHTML = '<div class="empty-state"><h3>No cases found</h3><p>Try adjusting filters or search.</p></div>';
+            return;
+        }
+        el.innerHTML = cases.map(c => {
+            const time = c.createdAt ? new Date(c.createdAt).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+            return `
+            <div class="case-item ${selectedId===c.id?'active':''}" onclick="selectCase(${c.id})" tabindex="0">
+                <div class="case-indicator ${c.severity}"></div>
+                <div class="case-content">
+                    <div class="case-top">
+                        <span class="case-id">#${c.id}</span>
+                        <span class="case-severity sev-${c.severity}">${c.severity}</span>
+                    </div>
+                    <div class="case-meta">
+                        <span class="case-type-tag">${formatType(c.caseType)}</span>
+                        <span class="case-client">${c.clientId}</span>
+                    </div>
+                    <div class="case-desc">${c.description || ''}</div>
+                    <div class="case-time">${time}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function formatType(t) {
+        return (t||'').replace(/_/g,' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function updatePag(d) {
+        document.getElementById('prevPage').disabled = d.currentPage === 0;
+        document.getElementById('nextPage').disabled = d.currentPage >= d.totalPages - 1;
+        document.getElementById('pageInfo').textContent = `Page ${d.currentPage+1} of ${d.totalPages||1} \u2022 ${d.totalElements} cases`;
+    }
+
+    function updateRole(role) {
+        const b = document.getElementById('roleBadge');
+        b.textContent = role; b.className = `role-pill role-${role}`;
+    }
+
+    function changePage(d) { currentPage += d; loadCases(); }
+
+    function filterByState(state) {
+        activeState = state;
+        document.querySelectorAll('.state-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.state === state);
+        });
+        currentPage = 0;
+        loadCases();
+    }
+
+    async function selectCase(id) {
+        selectedId = id;
+        highlightSelected();
+        const panel = document.getElementById('detailPanel');
+        panel.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+        try {
+            const d = await api(`/cases/${id}`);
+            renderDetail(d);
+        } catch (e) {
+            panel.innerHTML = `<div class="empty-state"><h3>Error</h3><p>${e.message}</p></div>`;
+        }
+    }
+
+    function highlightSelected() {
+        document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
+    }
+
+    function resetDetail() {
+        document.getElementById('detailPanel').innerHTML = `
+            <div class="empty-state"><div class="icon">&#9888;</div><h3>No case selected</h3>
+            <p>Select a case from the list to view details.</p></div>`;
+    }
+
+    function renderDetail(data) {
+        const c = data.case, notes = data.notes||[], role = data.userRole;
+        const evParts = (c.evidenceReferences||'').split(' | ').filter(Boolean);
+        const canAct = role==='INVESTIGATOR'||role==='OPS_LEAD';
+        const time = ts => ts ? new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
+
+        let actionBtns = '';
+        if (canAct) {
+            const btns = [];
+            if (c.state==='OPEN') btns.push `<button class="btn btn-primary" onclick="openTransition('INVESTIGATING')">Start Investigation</button>`;
+            if (c.state==='INVESTIGATING') {
+                btns.push `<button class="btn btn-warning" onclick="openTransition('NEEDS_SOURCE')">Request Source</button>`;
+                if (role==='OPS_LEAD') btns.push `<button class="btn btn-success" onclick="openTransition('RESOLVED')">Resolve</button>`;
+            }
+            if (c.state==='RESOLVED') btns.push `<button class="btn btn-danger" onclick="openTransition('REOPENED')">Reopen</button>`;
+            if (c.state==='NEEDS_SOURCE') btns.push `<button class="btn btn-primary" onclick="openTransition('INVESTIGATING')">Continue</button>`;
+            if (c.state==='REOPENED') btns.push `<button class="btn btn-primary" onclick="openTransition('INVESTIGATING')">Reinvestigate</button>`;
+            if (btns.length) actionBtns = `<div class="detail-header-actions">${btns.join('')}</div>`;
+        }
+
+        document.getElementById('detailPanel').innerHTML = `
+            <div class="detail-header">
+                <div>
+                    <h2>Case <span class="case-id-big">#${c.id}</span></h2>
+                </div>
+                ${actionBtns}
+            </div>
+            <div class="detail-body">
+                <div class="detail-section">
+                    <div class="section-header"><h3>Case Information</h3>
+                        <span class="case-severity sev-${c.severity}">${c.severity}</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="detail-grid">
+                            <div class="detail-field"><div class="field-label">Client</div><div class="field-value">${c.clientId}</div></div>
+                            <div class="detail-field"><div class="field-label">ISIN</div><div class="field-value mono">${c.isin}</div></div>
+                            <div class="detail-field"><div class="field-label">Type</div><div class="field-value">${formatType(c.caseType)}</div></div>
+                            <div class="detail-field"><div class="field-label">State</div><div class="field-value">${c.state}</div></div>
+                            <div class="detail-field"><div class="field-label">Created</div><div class="field-value">${time(c.createdAt)}</div></div>
+                            <div class="detail-field"><div class="field-label">Updated</div><div class="field-value">${time(c.updatedAt)}</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-header"><h3>Description</h3></div>
+                    <div class="section-body">
+                        <p style="font-size:13px;color:#d4d4d8;line-height:1.6;">${c.description || 'No description'}</p>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-header"><h3>Evidence Trail</h3></div>
+                    <div class="section-body">
+                        <div class="detail-grid" style="margin-bottom:12px;">
+                            <div class="detail-field"><div class="field-label">Source</div><div class="field-value">${c.sourceName || '-'}</div></div>
+                            <div class="detail-field"><div class="field-label">Report Cut</div><div class="field-value">${c.reportCut || '-'}</div></div>
+                            <div class="detail-field"><div class="field-label">Received</div><div class="field-value">${time(c.receivedAt)}</div></div>
+                            <div class="detail-field"><div class="field-label">File Hash</div><div class="field-value mono" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;">${c.fileHash || '-'}</div></div>
+                            <div class="detail-field"><div class="field-label">Row ID</div><div class="field-value mono">${c.rawRowId || '-'}</div></div>
+                            <div class="detail-field"><div class="field-label">Import ID</div><div class="field-value">${c.importHistoryId || '-'}</div></div>
+                        </div>
+                        ${evParts.length ? '<div class="field-label" style="margin-bottom:8px;">Evidence References</div>' + evParts.map(e => `<div class="evidence-card"><div class="evidence-data">${e}</div></div>`).join('') : ''}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-header"><h3>Notes (${notes.length})</h3></div>
+                    <div class="section-body">
+                        ${notes.map(n => `
+                            <div class="note-item">
+                                <div class="note-meta">
+                                    <span class="note-user">${n.userId}</span>
+                                    <span class="note-time">${time(n.createdAt)}</span>
+                                </div>
+                                <div class="note-text">${n.noteContent}</div>
+                                ${n.previousState ? `<div class="note-transition">${n.previousState} &rarr; ${n.newState}</div>` : ''}
+                            </div>
+                        `).join('')}
+                        ${!notes.length ? '<p style="color:#52525b;font-size:12px;">No notes yet.</p>' : ''}
+                        ${canAct ? `
+                        <div class="add-note">
+                            <textarea id="noteInput" placeholder="Add investigation note..."></textarea>
+                            <div class="add-note-actions">
+                                <button class="btn btn-primary" onclick="addNote()">Add Note</button>
+                            </div>
+                        </div>` : ''}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    async function addNote() {
+        const text = document.getElementById('noteInput').value.trim();
+        if (!text) return;
+        try {
+            await api(`/cases/${selectedId}/notes`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note: text, evidenceVersion: '1' })
+            });
+            toast('Note added', 'success');
+            selectCase(selectedId);
+        } catch (e) { toast('Failed: ' + e.message, 'error'); }
+    }
+
+    function openTransition(newState) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Transition to ${formatType(newState)}</h3>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <textarea id="transitionReason" placeholder="Reason for this transition..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                    <button class="btn btn-primary" id="confirmTransition">Confirm</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        document.getElementById('transitionReason').focus();
+        document.getElementById('confirmTransition').addEventListener('click', async () => {
+            const reason = document.getElementById('transitionReason').value.trim();
+            if (!reason) { document.getElementById('transitionReason').style.borderColor='#ef4444'; return; }
+            overlay.remove();
+            try {
+                await api(`/cases/${selectedId}/transition`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newState, reason })
+                });
+                toast(`Transitioned to ${formatType(newState)}`, 'success');
+                loadMetrics(); loadCases(); selectCase(selectedId);
+            } catch (e) { toast('Failed: ' + e.message, 'error'); }
+        });
+    }
+
+    function toast(msg, type) {
+        const el = document.createElement('div');
+        el.className = `toast toast-${type}`;
+        el.innerHTML = `<span>${type==='success'?'&#10003;':'&#10007;'}</span> ${msg}`;
+        document.getElementById('toastContainer').appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
+
+    // Keyboard
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        const items = [...document.querySelectorAll('.case-item')];
+        const idx = items.findIndex(i => i.classList.contains('active'));
+        if (e.key === 'ArrowDown' || e.key === 'j') {
+            e.preventDefault();
+            if (idx < items.length - 1) items[idx+1].click();
+            else if (items.length) items[0].click();
+        }
+        if (e.key === 'ArrowUp' || e.key === 'k') {
+            e.preventDefault();
+            if (idx > 0) items[idx-1].click();
+        }
+        if (e.key === 'ArrowLeft') changePage(-1);
+        if (e.key === 'ArrowRight') changePage(1);
+        if (e.key === 'Escape') { selectedId = null; resetDetail(); loadCases(); }
+        if (e.key === 'Enter' && idx >= 0) items[idx].click();
+        if (e.key === '/' && !e.ctrlKey) { e.preventDefault(); document.getElementById('searchInput').focus(); }
+    });
+
+    loadMetrics(); loadCases();
+    </script>
+</body>
+</html>

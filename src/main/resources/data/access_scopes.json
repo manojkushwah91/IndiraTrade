@@ -1,0 +1,60 @@
+{
+  "users": [
+    {
+      "user_id": "USR001",
+      "name": "Priya Sharma",
+      "role": "INVESTIGATOR",
+      "client_scope": ["CLI001", "CLI002", "CLI003"]
+    },
+    {
+      "user_id": "USR002",
+      "name": "Rahul Verma",
+      "role": "SUPPORT",
+      "client_scope": ["CLI001", "CLI002"]
+    },
+    {
+      "user_id": "USR003",
+      "name": "Amit Patel",
+      "role": "OPS_LEAD",
+      "client_scope": ["CLI001", "CLI002", "CLI003", "CLI004", "CLI005"]
+    },
+    {
+      "user_id": "USR004",
+      "name": "Neha Gupta",
+      "role": "AUDITOR",
+      "client_scope": []
+    }
+  ],
+  "clients": [
+    {
+      "client_id": "CLI001",
+      "name": "Rajesh Kumar",
+      "pan": "ABCPK1234A",
+      "masked_id": "CLI***001"
+    },
+    {
+      "client_id": "CLI002",
+      "name": "Sunita Devi",
+      "pan": "BCDPK2345B",
+      "masked_id": "CLI***002"
+    },
+    {
+      "client_id": "CLI003",
+      "name": "Vikram Singh",
+      "pan": "CDEPK3456C",
+      "masked_id": "CLI***003"
+    },
+    {
+      "client_id": "CLI004",
+      "name": "Meena Kumari",
+      "pan": "DEFPK4567D",
+      "masked_id": "CLI***004"
+    },
+    {
+      "client_id": "CLI005",
+      "name": "Anil Agarwal",
+      "pan": "EFGPK5678E",
+      "masked_id": "CLI***005"
+    }
+  ]
+}

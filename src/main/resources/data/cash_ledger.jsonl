@@ -1,0 +1,8 @@
+{"event_id":"EVT001","client_id":"CLI001","event_type":"CREDIT","amount_paise":500000,"state":"POSTED","effective_at":"2026-09-14T10:00:00+05:30","description":"Fund transfer from bank"}
+{"event_id":"EVT002","client_id":"CLI001","event_type":"DEBIT","amount_paise":200000,"state":"POSTED","effective_at":"2026-09-14T11:30:00+05:30","description":"Equity purchase RELIANCE"}
+{"event_id":"EVT003","client_id":"CLI002","event_type":"CREDIT","amount_paise":750000,"state":"POSTED","effective_at":"2026-09-15T09:00:00+05:30","description":"Fund transfer from bank"}
+{"event_id":"EVT004","client_id":"CLI002","event_type":"CREDIT","amount_paise":100000,"state":"PENDING","effective_at":"2026-09-15T14:00:00+05:30","description":"NEFT pending confirmation"}
+{"event_id":"EVT005","client_id":"CLI003","event_type":"CREDIT","amount_paise":300000,"state":"POSTED","effective_at":"2026-09-15T10:30:00+05:30","description":"Fund transfer from bank"}
+{"event_id":"EVT006","client_id":"CLI003","event_type":"DEBIT","amount_paise":150000,"state":"POSTED","effective_at":"2026-09-15T11:00:00+05:30","description":"Equity purchase TCS"}
+{"event_id":"EVT007","client_id":"CLI004","event_type":"CREDIT","amount_paise":400000,"state":"POSTED","effective_at":"2026-09-15T09:30:00+05:30","description":"Fund transfer from bank"}
+{"event_id":"EVT008","client_id":"CLI001","event_type":"CREDIT","amount_paise":250000,"state":"POSTED","effective_at":"2026-09-15T15:00:00+05:30","description":"Additional fund transfer"}
