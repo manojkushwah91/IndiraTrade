@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep - IndiraTrade Operations Console</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:#0f172a; color:#e2e8f0; line-height:1.7; }
+  .wrap { max-width:900px; margin:0 auto; padding:24px 20px 80px; }
+  h1 { font-size:26px; color:#60a5fa; margin-bottom:6px; }
+  .sub { color:#94a3b8; font-size:14px; margin-bottom:24px; }
+  h2 { font-size:20px; color:#f8fafc; margin:32px 0 10px; border-bottom:2px solid #334155; padding-bottom:6px; }
+  h3 { font-size:16px; color:#93c5fd; margin:20px 0 8px; }
+  h4 { font-size:14px; color:#fbbf24; margin:14px 0 4px; }
+  .card { background:#1e293b; border:1px solid #334155; border-radius:10px; padding:18px 20px; margin-bottom:14px; }
+  .hi { background:#1c1917; border:1px solid #44403c; border-left:4px solid #f59e0b; border-radius:8px; padding:12px 16px; margin:10px 0; }
+  .hi .t { color:#fbbf24; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+  .en { background:#172554; border:1px solid #1e3a8a; border-left:4px solid #3b82f6; border-radius:8px; padding:12px 16px; margin:10px 0; }
+  .en .t { color:#60a5fa; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+  code { background:#0f172a; padding:2px 7px; border-radius:4px; font-family:'Cascadia Code',Consolas,monospace; font-size:13px; color:#a5f3fc; }
+  pre { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:14px; overflow-x:auto; font-size:13px; margin:10px 0; }
+  pre code { background:none; color:#a5f3fc; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; font-size:14px; }
+  th,td { border:1px solid #334155; padding:8px 10px; text-align:left; }
+  th { background:#0f172a; color:#93c5fd; }
+  .qa { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:14px 16px; margin-bottom:10px; }
+  .qa .q { color:#fbbf24; font-weight:600; margin-bottom:6px; }
+  .qa .a { color:#cbd5e1; }
+  .hot { color:#f87171; font-weight:700; }
+  .green { color:#4ade80; font-weight:600; }
+  .tag { display:inline-block; background:#334155; color:#93c5fd; font-size:11px; padding:2px 8px; border-radius:4px; margin-right:6px; }
+  .nav { position:sticky; top:0; background:#0f172a; border-bottom:1px solid #334155; padding:8px 0; z-index:10; text-align:center; }
+  .nav a { color:#94a3b8; text-decoration:none; font-size:13px; margin:0 8px; }
+  .nav a:hover { color:#60a5fa; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="#run">How to Run</a>
+  <a href="#pitch">Pitch</a>
+  <a href="#arch">Architecture</a>
+  <a href="#stock">Stock Market Basics</a>
+  <a href="#levels">Levels</a>
+  <a href="#rules">Domain Rules</a>
+  <a href="#qa">Q&amp;A</a>
+  <a href="#demo">Demo Script</a>
+  <a href="#demo2">Desk Messages</a>
+</div>
+
+<div class="wrap">
+
+<h1>🎯 Interview Prep — IndiraTrade Operations Console</h1>
+<p class="sub">Levels 0–3 · Java 17 + Spring Boot 3.2 + SQLite · English + हिंदी (Hindi) explanations</p>
+
+<!-- ============ HOW TO RUN ============ -->
+<h2 id="run">1. How To Run It</h2>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>Two commands are enough to remember:</p>
+    <pre><code>mvn clean package -DskipTests&#10;java -jar target/operations-console-1.0.0-SNAPSHOT.jar</code></pre>
+    <p>Then open <code>http://localhost:8080</code>. Import the synthetic data with <code>POST /api/imports</code>.</p>
+    <p><b>Demo trick:</b> <code>http://localhost:8080?user=USR002</code> = Support masked view · <code>?user=USR004</code> = Auditor view · add <code>&amp;case=1</code> to auto-open a case.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>सिर्फ दो कमांड याद रखनी हैं:</p>
+    <pre><code>mvn clean package -DskipTests&#10;java -jar target/operations-console-1.0.0-SNAPSHOT.jar</code></pre>
+    <p>फिर <code>http://localhost:8080</code> खोलें। सिंथेटिक डेटा इम्पोर्ट करने के लिए <code>POST /api/imports</code> चलाएँ।</p>
+    <p><b>डेमो ट्रिक:</b> <code>?user=USR002</code> = सपोर्ट का मास्क्ड व्यू · <code>?user=USR004</code> = ऑडिटर व्यू · कोई केस खोलने के लिए <code>&amp;case=1</code> जोड़ें।</p>
+  </div>
+</div>
+
+<!-- ============ PITCH ============ -->
+<h2 id="pitch">2. The 30-Second Pitch</h2>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>"This is a <b>read-only operations console</b> for an Indian stock broker's exception desk. Every morning ops staff need to answer: <b>which client accounts have exceptions, what evidence supports each exception, who may see it, and what changed when a source file was corrected.</b> The system ingests 5 report streams — holdings CSV, DP position HTML, cash ledger JSON-lines, bank confirmation, exchange reference — normalizes them, detects discrepancies, and produces <b>cases</b> that authorized users investigate. It never trades and never places orders — it's purely analytical."</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>"यह एक <b>रीड-ओनली ऑपरेशन्स कंसोल</b> है एक भारतीय स्टॉक ब्रोकर के एक्सेप्शन डेस्क के लिए। हर सुबह ऑपरेशन्स टीम को जानना होता है: <b>किस क्लाइंट के खाते में एक्सेप्शन है, हर एक्सेप्शन के पीछे क्या एविडेंस है, उसे कौन देख सकता है, और जब कोई सोर्स फ़ाइल ठीक की गई तो क्या बदला।</b> यह सिस्टम 5 रिपोर्ट स्ट्रीम लेता है — होल्डिंग्स CSV, DP पोज़िशन HTML, कैश लेजर JSON-lines, बैंक कन्फर्मेशन, एक्सचेंज रेफ़रेंस — उन्हें नॉर्मलाइज़ करता है, गड़बड़ियाँ पहचानता है, और <b>केस</b> बनाता है जिन्हें अधिकृत यूज़र इन्वेस्टिगेट करते हैं। यह कभी ट्रेड नहीं करता — पूरी तरह एनालिटिकल है।"</p>
+  </div>
+</div>
+
+<!-- ============ ARCHITECTURE ============ -->
+<h2 id="arch">3. Architecture (draw on whiteboard)</h2>
+<div class="card">
+<pre><code>5 SOURCE FILES                     ADAPTER LAYER
+CSV/HTML/JSONL/CSV/XLSX            SourceAdapter interface
+        │                          CsvAdapter HtmlAdapter JsonLineAdapter XlsxAdapter
+        ▼                          AdapterRegistry (routes by source name)
+┌───────────────────────────────┐
+│ IMPORT SERVICE                │  SHA-256 hash (idempotency)
+│ ImportService                 │  ReentrantLock per source (concurrency)
+│ ConcurrentImportService       │  FileVersionService (versions + diff)
+│                               │  Case generation (matcher rules)
+└───────────────────────────────┘
+        ▼
+┌───────────────────────────────┐
+│ CASE SERVICE + USER SERVICE   │  workflow OPEN→INVESTIGATING→NEEDS_SOURCE→RESOLVED→REOPENED
+│ (RBAC - 4 roles)              │  notes = immutable audit trail
+│                               │  client scope filter + Support ID masking server-side
+└───────────────────────────────┘
+        ▼
+REST Controllers ──▶ UI (index.html) ──▶ SQLite (operations.db)</code></pre>
+  <div class="en"><div class="t">English</div>
+    <p><b>Layers:</b> Adapter → Import/Service → Case/Service → Controller → UI. Data flows one direction. <b>SQLite</b> for a portable local demo (one command, zero setup).</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>लेयर्स:</b> एडेप्टर → इम्पोर्ट/सर्विस → केस/सर्विस → कंट्रोलर → UI। डेटा एक दिशा में बहता है। <b>SQLite</b> पोर्टेबल लोकल डेमो के लिए (एक कमांड, ज़ीरो सेटअप)।</p>
+  </div>
+</div>
+
+<!-- ============ STOCK MARKET BASICS ============ -->
+<h2 id="stock">4. Stock Market Concepts In This Project <span class="tag">READ FIRST</span></h2>
+<p>The interviewer may test what these domain words actually mean. Learn these:</p>
+
+<h3>4.1 What is a Stock Broker?</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>A <b>stock broker</b> is the licensed intermediary who lets retail clients buy and sell shares on exchanges. The broker holds the client's money (cash) and maintains records of what the client owns. This project is a tool for the broker's own <b>exception desk</b> — the team that checks whether the broker's internal records match reality (depository, bank). <b>Important:</b> this console is <span class="green">read-only</span> — it identifies problems, it never trades.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>स्टॉक ब्रोकर</b> लाइसेंस्ड बिचौलिया होता है जो रिटेल क्लाइंट्स को एक्सचेंज पर शेयर खरीदने/बेचने देता है। ब्रोकर क्लाइंट का पैसा (कैश) रखता है और क्लाइंट के पास क्या है इसका रिकॉर्ड बनाए रखता है। यह प्रोजेक्ट ब्रोकर के अपने <b>एक्सेप्शन डेस्क</b> के लिए है — वो टीम जो जाँचती है कि ब्रोकर के इंटरनल रिकॉर्ड वास्तविकता (डिपॉज़िटरी, बैंक) से मेल खाते हैं या नहीं। <b>जरूरी:</b> यह कंसोल <span class="green">रीड-ओनली</span> है — समस्या पहचानता है, कभी ट्रेड नहीं करता।</p>
+  </div>
+</div>
+
+<h3>4.2 Holdings vs DP Position (Settled vs Pending)</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p><b>Internal holdings snapshot</b> = what the <i>broker's own records</i> think the client owns (CSV). <b>DP position</b> = what the <i>depository</i> actually records in the demat account (HTML extract).</p>
+    <p>In Indian markets, shares are held electronically in a <b>demat account</b> maintained by a <b>Depository Participant (DP)</b> of <b>NSDL or CDSL</b>. When you buy shares, they start as <b>PENDING</b> (movement_state) and become <b>SETTLED</b> after T+1 settlement.</p>
+    <p><b>The rule:</b> a pending movement must <span class="hot">never</span> be silently counted as settled. We compare only settled quantities.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>इंटरनल होल्डिंग्स</b> = ब्रोकर की अपनी बुक के अनुसार क्लाइंट के पास क्या है (CSV)। <b>DP पोज़िशन</b> = डिपॉज़िटरी के रिकॉर्ड के अनुसार डीमैट खाते में वास्तव में क्या है (HTML)।</p>
+    <p>भारत में शेयर इलेक्ट्रॉनिक रूप से <b>डीमैट खाते</b> में रहते हैं, जो <b>NSDL या CDSL</b> के <b>डिपॉज़िटरी पार्टिसिपेंट (DP)</b> रखते हैं। शेयर खरीदने पर वो <b>PENDING</b> होते हैं और T+1 सेटलमेंट के बाद <b>SETTLED</b> होते हैं।</p>
+    <p><b>नियम:</b> pending मूवमेंट को <span class="hot">कभी</span> सेटल्ड नहीं गिना जा सकता। हम केवल सेटल्ड क्वांटिटी की तुलना करते हैं।</p>
+  </div>
+</div>
+
+<h3>4.3 What is ISIN?</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p><b>ISIN</b> = International Securities Identification Number — a 12-character global code for a security. Indian format: <code>IN</code> + 10 digits + 1 check digit, e.g. <code>INE049A01021</code>. It is the <b>only reliable identity</b> for a security.</p>
+    <p>Why not the display symbol? The same company trades as different <b>symbols</b> on NSE vs BSE, symbols can be reused after delisting, and labels can be renamed. So we <span class="green">join on ISIN</span> across streams — never on symbol. Exchange + series is just context.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>ISIN</b> = International Securities Identification Number — किसी सिक्योरिटी का 12 अक्षरों वाला ग्लोबल कोड। भारतीय फॉर्मेट: <code>IN</code> + 10 अंक + 1 चेक डिजिट, जैसे <code>INE049A01021</code>। यह सिक्योरिटी की <b>एकमात्र भरोसेमंद पहचान</b> है।</p>
+    <p>डिस्प्ले सिंबल क्यों नहीं? वही कंपनी NSE और BSE पर अलग-अलग <b>सिंबल</b> से ट्रेड होती है, सिंबल डीलिस्टिंग के बाद रीयूज़ हो सकते हैं, लेबल बदल सकते हैं। इसलिए हम स्ट्रीम्स के बीच <span class="green">ISIN पर जॉइन</span> करते हैं — कभी सिंबल पर नहीं।</p>
+  </div>
+</div>
+
+<h3>4.4 NSE, BSE, Bhav Copy</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p><b>NSE</b> = National Stock Exchange, <b>BSE</b> = Bombay Stock Exchange — India's two main exchanges. A <b>bhav copy</b> is the end-of-day file listing every symbol's open/high/low/close/volume for that day. NSE and BSE columns differ slightly (placement, series, etc.), so our <code>PUBLIC_PORTALS.md</code> documents both and records provenance (URL, download time, hash, column mapping). We never join exchanges by display symbol.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>NSE</b> = National Stock Exchange (नेशनल स्टॉक एक्सचेंज), <b>BSE</b> = Bombay Stock Exchange (बॉम्बे स्टॉक एक्सचेंज) — भारत के दो मुख्य एक्सचेंज। <b>भाव कॉपी</b> दिन के अंत की फ़ाइल है जिसमें हर सिंबल की ओपन/हाई/लो/क्लोज़/वॉल्यूम होती है। NSE और BSE के कॉलम अलग-अलग होते हैं, इसलिए हमारा <code>PUBLIC_PORTALS.md</code> दोनों को दस्तावेज़ करता है — URL, डाउनलोड समय, हैश, कॉलम मैपिंग। हम कभी डिस्प्ले सिंबल से जॉइन नहीं करते।</p>
+  </div>
+</div>
+
+<h3>4.5 Cash Ledger, Posted vs Pending, Paise</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>Clients move money in and out (pay-in/pay-out). The <b>cash ledger</b> records every <b>cash event</b> with a signed <code>amount_paise</code> (negative = debit/outflow, positive = credit/inflow).</p>
+    <ul>
+      <li><b>POSTED</b> = money actually moved (counts toward balance)</li>
+      <li><b>PENDING</b> = instruction received but not yet settled (does NOT count)</li>
+    </ul>
+    <p><b>Posted cash at a cut</b> = exact integer sum of <code>amount_paise</code> for events with <code>state=POSTED</code> and <code>effective_at &lt;= cut_at</code>. A later event is not retroactively posted. Money is computed in <span class="hot">integer paise, never floating point</span> (₹ = 100 paise).</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>क्लाइंट पैसा लाते/ले जाते हैं। <b>कैश लेजर</b> हर <b>कैश इवेंट</b> को साइन्ड <code>amount_paise</code> के साथ रिकॉर्ड करता है (नेगेटिव = डेबिट/निकासी, पॉज़िटिव = क्रेडिट/जमा)।</p>
+    <ul>
+      <li><b>POSTED</b> = पैसा वास्तव में बदला (बैलेंस में गिना जाएगा)</li>
+      <li><b>PENDING</b> = निर्देश मिला पर सेटल नहीं (बैलेंस में नहीं गिना जाएगा)</li>
+    </ul>
+    <p><b>कट पर पोस्टेड कैश</b> = उन सभी इवेंट्स के <code>amount_paise</code> का पूर्णांक योग जिनका <code>state=POSTED</code> और <code>effective_at &lt;= cut_at</code> है। बाद का इवेंट पीछे रेट्रोएक्टिव नहीं होता। पैसा <span class="hot">हमेशा इंटीजर पैसे में</span> होता है, कभी फ्लोटिंग पॉइंट में नहीं (₹1 = 100 पैसे)।</p>
+  </div>
+</div>
+
+<h3>4.6 Bank Confirmation and UTR</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>When a client deposits money, the broker cross-checks with the <b>bank confirmation</b> — the bank's statement of credits/debits. Each transfer has a <b>UTR</b> (Unique Transaction Reference, e.g. <code>UTR002345678</code>), which is like a tracking number for NEFT/IMPS/RTGS payouts.</p>
+    <p><b>Important trap:</b> a UTR is a <i>reference</i>, not a unique ledger event ID — it can legitimately repeat (e.g. two legs of one instruction). So we <span class="green">keep both lines and flag DUPLICATE_BANK_REF</span> rather than guessing which is wrong. A bank row can only support a cash case when a human or documented rule has checked client, direction, amount, reference, and timing.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>जब क्लाइंट पैसा जमा करता है, ब्रोकर <b>बैंक कन्फर्मेशन</b> से क्रॉस-चेक करता है — यानी बैंक का क्रेडिट/डेबिट स्टेटमेंट। हर ट्रांसफर में <b>UTR</b> (Unique Transaction Reference, जैसे <code>UTR002345678</code>) होता है — NEFT/IMPS/RTGS का ट्रैकिंग नंबर।</p>
+    <p><b>जरूरी ट्रैप:</b> UTR एक <i>रेफ़रेंस</i> है, लेजर इवेंट ID नहीं — यह वैध रूप से दोहरा सकता है (जैसे एक निर्देश के दो पैर)। इसलिए हम <span class="green">दोनों लाइनें रखते हैं और DUPLICATE_BANK_REF फ़्लैग करते हैं</span>, अनुमान से कुछ नहीं हटाते। बैंक रो कैश केस को तभी सपोर्ट कर सकता है जब क्लाइंट, दिशा, राशि, रेफ़रेंस और टाइमिंग चेक हो।</p>
+  </div>
+</div>
+
+<h3>4.7 Settlement (T+1), SEBI, Circulars</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p><b>Settlement</b> = the exchange of money and shares after a trade. In India equity follows <b>T+1</b>: trade day T, settlement tomorrow. Until settled, a holding is PENDING.</p>
+    <p><b>SEBI</b> = Securities and Exchange Board of India, the market regulator. A <b>circular</b> is an official regulatory directive. Our <code>PUBLIC_PORTALS.md</code> documents one real SEBI circular relevant to broker operations (provenance: publication date, identifier, scope, URL, human-verified impact note). <b>Key idea:</b> a circular is an <i>evidence link</i>, not a rule-engine input until a human approves a versioned rule.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>सेटलमेंट</b> = ट्रेड के बाद पैसे और शेयरों का आदान-प्रदान। भारतीय इक्विटी में <b>T+1</b> है: ट्रेड के दिन T, अगले दिन सेटलमेंट। सेटल होने तक होल्डिंग PENDING होती है।</p>
+    <p><b>SEBI</b> = Securities and Exchange Board of India, बाज़ार का रेगुलेटर। <b>सर्कुलर</b> एक आधिकारिक नियामक निर्देश है। हमारा <code>PUBLIC_PORTALS.md</code> ब्रोकर ऑपरेशन्स से जुड़ा एक असली SEBI सर्कुलर दस्तावेज़ करता है। <b>मुख्य बात:</b> सर्कुलर <i>एविडेंस लिंक</i> है, रूल-इंजन इनपुट नहीं — जब तक इंसान अनुमोदित न करे।</p>
+  </div>
+</div>
+
+<h3>4.8 Exception / Case / Severity</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>An <b>exception</b> is any discrepancy: holdings don't match the DP, cash doesn't match the bank, a source is missing or stale. Each becomes a <b>case</b> with severity:</p>
+    <ul>
+      <li><span class="hot">CRITICAL</span> = wrong client scope, access leak, corrupted source (blocks release)</li>
+      <li><span class="hot">HIGH</span> = confirmed nonzero settled holding / posted cash mismatch</li>
+      <li><span class="green">MEDIUM</span> = stale, missing, or ambiguous evidence</li>
+      <li><span class="green">LOW</span> = informational, no financial discrepancy</li>
+    </ul>
+    <p>Severity is based on <b>impact and evidence</b>, never on the color of a market move.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><b>एक्सेप्शन</b> कोई भी गड़बड़ी: होल्डिंग्स डीपी से नहीं मिलतीं, कैश बैंक से नहीं मिलता, कोई सोर्स ग़ायब/पुराना है। हर एक <b>केस</b> बनता है जिसका सेवेरिटी स्तर होता है:</p>
+    <ul>
+      <li><span class="hot">CRITICAL</span> = ग़लत क्लाइंट स्कोप, एक्सेस लीक, ग़लत सोर्स (रिलीज़ रोकता है)</li>
+      <li><span class="hot">HIGH</span> = पक्का नॉनज़ीरो सेटल्ड होल्डिंग / पोस्टेड कैश मिसमैच</li>
+      <li><span class="green">MEDIUM</span> = पुराना, ग़ायब, या अस्पष्ट एविडेंस</li>
+      <li><span class="green">LOW</span> = सूचना मात्र, कोई वित्तीय गड़बड़ी नहीं</li>
+    </ul>
+    <p>सेवेरिटी <b>इम्पैक्ट और एविडेंस</b> पर आधारित है — मार्केट मूवमेंट के रंग पर कभी नहीं।</p>
+  </div>
+</div>
+
+<!-- ============ LEVELS ============ -->
+<h2 id="levels">5. Level-by-Level Breakdown</h2>
+
+<h3>Level 0 — Desk Readback</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>Deliverable: <code>decisions.md</code>. I drew the data flow, wrote <b>5 clarification questions</b> (data cut timing, ISIN resolution, bank ref matching, pending DP handling, corrected-file handling), built a <b>source authority table</b> (who is authoritative for what), and identified <b>2 cases that must stay UNKNOWN</b>: a missing DP file and an ambiguous bank reference.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>डिलीवरेबल: <code>decisions.md</code>। डेटा फ़्लो बनाया, <b>5 क्लैरिफ़िकेशन सवाल</b> लिखे, <b>सोर्स अथॉरिटी टेबल</b> बनाई, और <b>2 ऐसे केस</b> पहचाने जो <b>UNKNOWN</b> ही रहने चाहिए: ग़ायब DP फ़ाइल और अस्पष्ट बैंक रेफ़रेंस।</p>
+  </div>
+</div>
+
+<h3>Level 1 — Working Slice</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>4 parsers behind one <code>SourceAdapter</code> interface (CSV=OpenCSV, HTML=Jsoup, JSONL=Jackson, XLSX=Apache POI), routed by <code>AdapterRegistry</code>. All data normalized (paise as long, ISIN uppercase, flexible dates, Indian commas). Case generation: holding mismatch, pending DP, cash mismatch, duplicate bank ref, missing source. UI with filters + evidence pane.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>4 पार्सर एक <code>SourceAdapter</code> इंटरफ़ेस के पीछे (CSV=OpenCSV, HTML=Jsoup, JSONL=Jackson, XLSX=Apache POI), <code>AdapterRegistry</code> राउटिंग करता है। सारा डेटा नॉर्मलाइज़ होता है। केस जेनरेशन: होल्डिंग मिसमैच, पेंडिंग DP, कैश मिसमैच, डुप्लीकेट बैंक रेफ़, मिसिंग सोर्स।</p>
+  </div>
+</div>
+
+<h3>Level 2 — Operations Workflow</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p>4 roles with <b>server-side RBAC</b> (Investigator, Support, Ops Lead, Auditor). Support sees masked IDs in the JSON itself. Workflow OPEN→INVESTIGATING→NEEDS_SOURCE→RESOLVED→REOPENED with immutable notes. Severity per domain rules. Pagination + metrics with definitions.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p>4 रोल <b>सर्वर-साइड RBAC</b> के साथ (इन्वेस्टिगेटर, सपोर्ट, ऑप्स लीड, ऑडिटर)। सपोर्ट को JSON में ही मास्क्ड ID मिलती हैं। वर्कफ़्लो के साथ इम्यूटेबल नोट्स। सेवेरिटी डोमेन नियमों के अनुसार। पेजिनेशन + मेट्रिक्स।</p>
+  </div>
+</div>
+
+<h3>Level 3 — Reliability</h3>
+<div class="card">
+  <div class="en"><div class="t">English</div>
+    <p><code>SourceAdapter</code> abstraction, <b>SHA-256</b> idempotency + <code>ReentrantLock</code> per source for concurrency, <code>FileVersionService</code> for corrected files (version + line diff, notes preserved), <code>LoadTestGenerator</code> (100K rows / 2K readers, p50/p95), <code>PerformanceMetricsService</code>.</p>
+  </div>
+  <div class="hi"><div class="t">हिंदी</div>
+    <p><code>SourceAdapter</code> एब्स्ट्रैक्शन, <b>SHA-256</b> इडेम्पोटेंसी + हर सोर्स के लिए <code>ReentrantLock</code> कंकरेंसी के लिए, <code>FileVersionService</code> सुधारी गई फ़ाइलों के लिए (वर्जन + डिफ़, नोट्स सुरक्षित), <code>LoadTestGenerator</code>, <code>PerformanceMetricsService</code>।</p>
+  </div>
+</div>
+
+<!-- ============ DOMAIN RULES ============ -->
+<h2 id="rules">6. Domain Rules &amp; Traps <span class="tag">interviewer tests these</span></h2>
+<div class="card">
+<table>
+<tr><th>Rule</th><th>What to say</th></tr>
+<tr><td><b>Severity</b></td><td>Confirmed nonzero settled mismatch = HIGH. Stale/missing/ambiguous = MEDIUM. Access leak/corrupted = CRITICAL. Not market color.</td></tr>
+<tr><td><b>Pending ≠ settled</b></td><td>PENDING DP shown separately; cannot erase a delta. May inform via a note, but case stays open.</td></tr>
+<tr><td><b>PENDING cash</b></td><td>Posted cash = integer sum of POSTED amount_paise, effective_at &lt;= cut. PENDING not posted.</td></tr>
+<tr><td><b>Silence = unknown</b></td><td>MISSING_SOURCE / UNMATCHED_IDENTITY / STALE_CUT / CONFLICTING_EVIDENCE are first-class. Unknown never MATCHED.</td></tr>
+<tr><td><b>Bank UTR</b></td><td>Reference ≠ ledger event ID. Keep both duplicate lines; flag DUPLICATE_BANK_REF; don't auto-net.</td></tr>
+<tr><td><b>ISIN join</b></td><td>Canonical key, not display symbol (renamed/reused/differs across NSE/BSE).</td></tr>
+<tr><td><b>Corrected file</b></td><td>New bytes = new version + audit trail + prior note preserved.</td></tr>
+</table>
+</div>
+
+<!-- ============ Q&A ============ -->
+<h2 id="qa">7. Interview Q&amp;A</h2>
+
+<h3>Project Questions</h3>
+<div class="qa">
+  <div class="q">Q: Why SQLite?</div>
+  <div class="a">For a local one-command demo — zero setup, portable single file. In production I'd use PostgreSQL: concurrent writes, row-level security for cross-desk isolation, real indexes. My <code>SCALE_PLAN.md</code> covers the 50-desk design.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: How do you scale to 50 desks without data leaks?</div>
+  <div class="a">PostgreSQL Row-Level Security — policy injects client scope into every query so even a buggy query can't leak. Plus composite indexes on (client_id, isin), a queue with dead-letter handling for imports, and app retry with backpressure. I address queueing and backpressure before adding extra services.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What if a file arrives late or is corrected?</div>
+  <div class="a">Report cut and receipt time are distinct fields. A late file is a STALE_CUT case — I compare only compatible cuts. A corrected file under the same name = new SHA-256 version, with a diff; prior notes survive.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: How does idempotency work exactly?</div>
+  <div class="a">Compute SHA-256 of the bytes first, check ImportHistory for that source+hash. If it exists → skip, no duplicate cases. The ReentrantLock handles two workers racing on the same source simultaneously (check-then-insert race).</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What is your 300ms p95 target?</div>
+  <div class="a">Under 300ms for a 50-row paginated case list. LoadTestGenerator seeds 100K ledger / 10K holdings / 2K readers and reports percentiles honestly. If missed, bottleneck analysis → compound indexes (client_id, isin) + pagination tuning.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: Trace one input row to one case.</div>
+  <div class="a">Each case stores sourceName, fileHash, reportCut, rawRowId, mappingVersion, receivedAt. Example: case for ISIN INE049A01021, client CLI002, rawRowId "CLI002|INE049A01021|2026-09-15T15:30". I can trace to the exact DP row.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: How do you verify someone is authorized?</div>
+  <div class="a">X-User-Id header maps to a User seeded from access_scopes.json. UserService.getClientScope filters every case query; canAccessClient is enforced in detail/note/transition controllers and returns 403 — not just hidden buttons. Support gets masked clientId in the JSON response itself (maskClientId → CLI***001).</div>
+</div>
+
+<h3>Stock Market Questions (they said to ask these)</h3>
+<div class="qa">
+  <div class="q">Q: What is the difference between a holding and a DP position?</div>
+  <div class="a">Holding = broker's internal view (what our books show). DP position = depository's official record of the demat account (NSDL/CDSL via a DP). The DP statement is the more authoritative source for who actually owns the shares. This project detects when they disagree.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What does "settled" vs "pending" quantity mean?</div>
+  <div class="a">Settlement is T+1 in Indian equity. Bought shares are PENDING on trade day and become SETTLED after settlement. A pending movement is not yet a settled holding — our rule never lets pending erase a settled delta.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: Why store money in paise and not rupees?</div>
+  <div class="a">Exact integer arithmetic — no binary floating point error, no rounding drift when summing millions of events. ₹ converted to 100 paise is fine; float would fail the "exact integer sum of posted cash" requirement.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What is ISIN and why do we join on it?</div>
+  <div class="a">12-char global security ID. Symbols differ across NSE/BSE and get reused. ISIN is unique per security, so it's the canonical join key. Display symbol is context only.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What is a UTR and why can it duplicate?</div>
+  <div class="a">Unique Transaction Reference for bank transfers. A single client instruction can produce multiple legs sharing one UTR — so a repeated UTR is ambiguous, not necessarily fraud. We keep both lines and flag, don't guess.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What is a bhav copy?</div>
+  <div class="a">End-of-day price/volume file from an exchange. NSE and BSE schema differ slightly; PUBLIC_PORTALS.md records provenance and column mapping for each. Price is reference info, never evidence of account entitlement.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: What would you do if a client claims money never arrived but the ledger shows a credit?</div>
+  <div class="a">I'd check the bank confirmation for that client+date+direction+amount+UTR. If the bank confirms, the credit is real. If not, that's a CONFLICTING_EVIDENCE / CASH_MISMATCH case. Insufficient evidence → do not net, keep researching.</div>
+</div>
+<div class="qa">
+  <div class="q">Q: Your system doesn't trade. Why is that important?</div>
+  <div class="a">This is an exception desk — analysis only. Trading adds execution risk, order liability, and market-facing complexity outside the assessment's scope. The brief explicitly says read-only; we respect that boundary.</div>
+</div>
+
+<!-- ============ LIVE DEMO SCRIPT ============ -->
+<h2 id="demo">8. Live Demo Script</h2>
+<div class="card">
+<ol>
+  <li><code>POST /api/imports</code> → 5 sources imported, 5 cases generated</li>
+  <li><code>GET /api/cases</code> (Investigator) → click a case → <b>evidence pane</b> (hash, source, row ID, cut)</li>
+  <li>Add a <b>note</b> → see audit entry with user + timestamp</li>
+  <li>Transition OPEN → INVESTIGATING → see the audit note</li>
+  <li>Switch to <b>Support</b> → client IDs masked <code>CLI***001</code></li>
+  <li>Call an unauthorized endpoint → show <b>403 denied</b></li>
+  <li>Re-run <code>POST /api/imports</code> → <b>no new cases</b> (idempotent)</li>
+  <li>Switch to <b>Auditor</b> → all clients, no edit buttons</li>
+  <li><code>GET /api/cases/metrics</code> → show definitions</li>
+</ol>
+</div>
+
+<!-- ============ DESK MESSAGES ============ -->
+<h2 id="demo2">9. The 4 Desk Messages (be ready to interpret)</h2>
+<div class="card">
+  <div class="qa"><div class="q">"The green tile is showing, but the DP file landed after the cut. Can we close it?"</div><div class="a">No. The DP data is after my report cut → STALE_CUT, cannot compare at a compatible cut. Evidence to close = same-cut DP file. Not enough evidence = keep UNKNOWN.</div></div>
+  <div class="qa"><div class="q">"This ISIN is on both screens, though the scrip label changed. Which account is short?"</div><div class="a">Join by ISIN, ignore the label change. Compare internal settled vs DP settled. Whichever settled qty is lower = the short side (with position_type and cut matched).</div></div>
+  <div class="qa"><div class="q">"A bank UTR repeats in the feed. The client says the money came once. Keep both lines?"</div><div class="a">Yes — keep both lines, flag DUPLICATE_BANK_REF. A UTR is a reference, not a unique ID. Don't net/delete without a documented matching rule or human check.</div></div>
+  <div class="qa"><div class="q">"Yesterday's export was corrected this morning. The note on the old case must still be there."</div><div class="a">Corrected file = new SHA-256 version, diff shown, audit trail preserved. Prior notes are immutable and survive the version change. I can show the old note + the new version diff.</div></div>
+</div>
+
+<!-- ============ MISTAKES ============ -->
+<h2 id="demo3">10. The Bugs We Found &amp; Fixed (volunteer these)</h2>
+<div class="card">
+<ul>
+  <li><b>Severity bug</b> — holding mismatches were MEDIUM → fixed to HIGH per domain rule</li>
+  <li><b>File hash missing</b> — now SHA-256 stored on every case's evidence</li>
+  <li><b>Server-side masking</b> — Support was seeing real client IDs in JSON → masked in the controller</li>
+  <li><b>Transition 400</b> — empty expectedPriorState sent as "" (not null) → fixed request</li>
+  <li><b>Auditor 0 cases</b> — empty scope became [""] instead of [] → fixed scope parsing + query</li>
+  <li><b>Support missing evidence fields</b> — receivedAt/rawRowId/importHistoryId omitted from masked map → added</li>
+</ul>
+<p>Say: <i>"I caught these by testing the API directly, not just clicking the UI."</i> — shows real debugging.</p>
+</div>
+
+<!-- ============ KEY PHRASES ============ -->
+<h2 id="demo4">11. Key Phrases To Keep Saying</h2>
+<div class="card">
+<ul>
+  <li>"This is Level 3 complete."</li>
+  <li>"25 tests pass — parser, edge-case, integration, RBAC, workflow."</li>
+  <li>"I used AI heavily; it's honestly disclosed in AI_USAGE.md. I directed, reviewed, and debugged; I'm ready to modify the code live."</li>
+  <li>"I'd want to verify that against the source before concluding." (the honest line)</li>
+  <li>"A snapshot is not a depository statement."</li>
+  <li>"Silence is unknown, not zero."</li>
+  <li>"A pending movement cannot erase a settled delta."</li>
+  <li>"We never join by display symbol — only ISIN."</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>
